@@ -6,7 +6,9 @@ int	main(int argc, char **argv) {
         return -1;
     }
 
-    
+    if (db.put("hello", "world") != BFDB_OK) {
+        return -1;
+    }
 
     return 0;
 }

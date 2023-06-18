@@ -2,6 +2,7 @@
 #include "db.hpp"
 
 #include <cstddef>
+#include <cstdio>
 #include <unistd.h>
 namespace bfdb {
     bffile:: ~bffile() {
@@ -9,8 +10,9 @@ namespace bfdb {
     };
 
     int bffile::open(const std::string file) {
-        fd = ::open(file.c_str(), 0);
+        fd = ::open(file.c_str(), (O_WRONLY|O_APPEND)|O_CREAT, 0644);
         if (fd == -1) {
+            perror("");
             return BFDB_ERR;
         }
         return BFDB_OK;
@@ -31,6 +33,10 @@ namespace bfdb {
     int bffile::write(const char *data, size_t size) {
         size_t n;
         for (;;) {
+            if (size == 0) {
+                break;
+            }
+            
             n = ::write(fd, data, size);
             if (n < 0) {
                 if (errno == EINTR) {

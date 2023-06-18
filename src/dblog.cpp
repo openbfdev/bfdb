@@ -4,6 +4,14 @@
 #include "bffile.hpp"
 
 namespace bfdb {
+
+    int dblog::open(std::string db_name, uint64_t log_number) {
+        if (log.open(db_name + "/" + std::to_string(log_number) + ".log") != BFDB_OK) {
+            return BFDB_ERR;
+        }
+        return BFDB_OK;
+    }
+
     //append record
     int dblog::append(enum log_record_type type, const char *data, size_t size) {
         uint32_t crc = 0;

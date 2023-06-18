@@ -1,4 +1,9 @@
 #include "db.hpp"
+#include "serializer.hpp"
+#include <cstdio>
+#include <string>
+#include "dblog.hpp"
+#include <sys/stat.h>
 
 namespace bfdb {
     bfdb::bfdb(const std::string &name): db_name(name){
@@ -14,7 +19,31 @@ namespace bfdb {
             return BFDB_ERR;
         }
 
+        if (::mkdir(db_name.c_str(), 0755) != 0) {
+            // perror("");
+            //ignore error
+        }
+
+        if (log.open(db_name, 0) != BFDB_OK) {
+            return BFDB_ERR;
+        }
         
+        return BFDB_OK;
+    }
+
+
+    int bfdb::put(const std::string &key, const std::string &value) {
+        std::string dst;
+        serializer s;
+
+        s.serialize(dst, (uint32_t)key.length());
+        dst.append(key.data());
+
+        s.serialize(dst, (uint32_t)value.length());
+        dst.append(value.data());
+        
+        log.append(dst);
+
         return BFDB_OK;
     }
 }

@@ -17,6 +17,8 @@ namespace bfdb {
     static const int DBLOG_BLOCK_SIZE = 32768;
 
     class dblog {
+    public:
+        int open(std::string db_name, uint64_t log_number);
         int append(const std::string data);
         // int append(enum log_record_type type, const char *data, size_t size);
         private:
