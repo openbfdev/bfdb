@@ -52,10 +52,9 @@ namespace bfdb {
         if (cap >= size) {
             type = DBLOG_RECORD_FULL;
             n = size;
+            return append(type, p, n);
         }
-
-        return append(type, p, n);
-
+        
         type = DBLOG_RECORD_FIRST;
 
         for (;;) {
