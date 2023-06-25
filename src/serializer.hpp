@@ -7,9 +7,9 @@
 namespace bfdb {
     class serializer {
         public:
-            int serialize(std::string &dst, uint32_t i);
-            int serialize(std::string &dst, uint64_t i);
-
+            static int serialize(std::string &dst, uint32_t i);
+            static int serialize(std::string &dst, uint64_t i);
+            static int serialize(std::string &dst, const char *data);
     };
 }
 
