@@ -90,15 +90,15 @@ namespace bfdb {
         return BFDB_OK;
     }
 
-    int dblog::append(const std::string &key, const std::string &value) {
+    int dblog::put(const std::string &key, const std::string &value) {
         std::string dst;
 
         serializer::serialize(dst, (uint32_t)key.length());
         serializer::serialize(dst, key.data());
         serializer::serialize(dst, (uint32_t)value.length());
         serializer::serialize(dst, value.data());
-        
+
         return append(dst);
     }
-
+    
 }

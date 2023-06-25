@@ -33,7 +33,7 @@ namespace bfdb {
 
     int bfdb::put(const std::string &key, const std::string &value) {
     
-        if (log.append(key, value) != BFDB_OK) {
+        if (log.put(key, value) != BFDB_OK) {
             return BFDB_ERR;
         }
 

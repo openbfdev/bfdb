@@ -19,7 +19,7 @@ namespace bfdb {
     class dblog {
     public:
         int open(std::string db_name, uint64_t log_number);
-        int append(const std::string &key, const std::string &value);
+        int put(const std::string &key, const std::string &value);
         // int append(enum log_record_type type, const char *data, size_t size);
         private:
             int append(const std::string &data);
