@@ -11,11 +11,14 @@ namespace bfdb {
             int write(const char *data, size_t size);
             int write(uint32_t i);
             int write(uint8_t b);
+            int read(char *buf, size_t size);
+            int read(char *buf, size_t size, off_t offset);
             int fsync();
             ~bffile();
         private:
-            const std::string file;
+            const std::string name;
             int fd;
+            off_t sys_offset;
     };
 }
 

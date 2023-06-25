@@ -14,7 +14,7 @@ namespace bfdb {
     }
 
     //append record
-    int dblog::append(enum log_record_type type, const char *data, size_t size) {
+    int dblog::append_record(enum log_record_type type, const char *data, size_t size) {
         uint32_t crc = 0;
 
         if (log.write(crc) != BFDB_OK) {
@@ -39,11 +39,11 @@ namespace bfdb {
 
         log.fsync();
 
-        block_offset = DBLOG_HEADER_SIZE + size;
+        block_offset += DBLOG_HEADER_SIZE + size;
         return BFDB_OK;
     }
 
-    int dblog::append(const std::string &data) {
+    int dblog::append_records(const std::string &data) {
         const char *p = data.data();
         size_t size = data.length();
         size_t n, cap;
@@ -53,7 +53,7 @@ namespace bfdb {
         if (cap >= size) {
             type = DBLOG_RECORD_FULL;
             n = size;
-            return append(type, p, n);
+            return append_record(type, p, n);
         }
         
         type = DBLOG_RECORD_FIRST;
@@ -71,8 +71,8 @@ namespace bfdb {
             cap = DBLOG_BLOCK_SIZE - block_offset - DBLOG_HEADER_SIZE;
             n = std::min(cap, size);
 
-            if (append(type, p, n) != BFDB_OK) {
-                return BFDB_OK;
+            if (append_record(type, p, n) != BFDB_OK) {
+                return BFDB_ERR;
             }
 
             if (n == cap) {
@@ -98,7 +98,7 @@ namespace bfdb {
         serializer::serialize(dst, (uint32_t)value.length());
         serializer::serialize(dst, value.data());
 
-        return append(dst);
+        return append_records(dst);
     }
-    
+
 }

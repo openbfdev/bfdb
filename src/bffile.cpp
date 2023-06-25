@@ -1,9 +1,11 @@
 #include "bffile.hpp"
 #include "db.hpp"
 
+#include <cassert>
 #include <cstddef>
 #include <cstdio>
 #include <unistd.h>
+
 namespace bfdb {
     bffile:: ~bffile() {
         close(fd);
@@ -50,6 +52,32 @@ namespace bfdb {
         }
 
         return BFDB_OK;
+    }
+
+    int bffile::read(char *buf, size_t size) {
+        size_t n;
+        n = ::read(fd, buf, size);
+        if (n == -1) {
+            return BFDB_ERR;
+        }
+
+        assert(size >= n);
+
+        sys_offset += n;
+        return BFDB_OK;
+    }
+
+
+    int bffile::read(char *buf, size_t size, off_t offset) {
+        if (sys_offset != offset) {
+            if (::lseek(fd, offset, SEEK_SET) == -1) {
+                return BFDB_ERR;
+            }
+            
+            sys_offset = offset;
+        }
+
+        return read(buf, size);
     }
 
     int bffile::fsync() {
