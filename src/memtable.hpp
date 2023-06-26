@@ -2,6 +2,7 @@
 #define __MEMTABLE__H__
 
 #include <string>
+#include <cstdint>
 #include "bfdev/skiplist.h"
 
 namespace bfdb {
@@ -24,6 +25,7 @@ namespace bfdb {
             }mtable_node_t;
             int mtable_node_build(mtable_node_t* &node, const std::string &key, const std::string &value, uint64_t sequence, uint8_t type);
             static long mtable_node_cmp(const void *ap, const void *bp);
+            static long mtable_node_find(const void *node, const void *key);
             static void mtable_node_free(void *p);
 
             struct bfdev_skip_head *table;

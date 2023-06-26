@@ -9,28 +9,18 @@
 namespace bfdb {
 
     long memtable::mtable_node_cmp(const void *a, const void *b) {
-        mtable_node_t *nodea = (mtable_node_t *)a , *nodeb = (mtable_node_t *)b;
-        int key_cmp;
-        key_cmp = strcmp(nodea->key, nodeb->key);
+        mtable_node_t *nodea = (mtable_node_t *)a, *nodeb = (mtable_node_t *)b;
+        int result;
 
-        if (key_cmp > 0) {
-            return 1;
-        }
+        result = strcmp(nodea->key, nodeb->key);
+        if (result)
+            return result;
 
-        if (key_cmp < 0) {
-            return -1;
-        }
+        return nodea->sequence - nodeb->sequence;
+    }
 
-        //akey == bkey
-        if (nodea->sequence > nodeb->sequence) {
-            return -1;
-        }
-
-        if (nodea->sequence < nodeb->sequence) {
-            return 1;
-        }
-
-        return 0;
+    long memtable::mtable_node_find(const void *node, const void *key) {
+        return strcmp(((mtable_node_t *)node)->key, (const char *)key);
     }
 
     void memtable::mtable_node_free(void *p) {
@@ -50,12 +40,12 @@ namespace bfdb {
 
         node->key_size = key.size();
 
-        node->key = (char *)malloc(node->key_size);
+        node->key = (char *)::malloc(node->key_size);
         if (node->key == NULL) {
             return BFDB_ERR;
         }
 
-        memcpy(node->key, key.data(), key.size());
+        ::memcpy(node->key, key.data(), key.size());
 
         node->sequence = sequence;
         node->type = type;
@@ -67,12 +57,12 @@ namespace bfdb {
             return BFDB_OK;
         }
 
-        node->value = (char *)malloc(node->value_size);
+        node->value = (char *)::malloc(node->value_size);
         if (node->value == NULL) {
             return BFDB_ERR;
         }
-        
-        memcpy(node->value, value.data(), value.size());
+
+        ::memcpy(node->value, value.data(), value.size());
 
         return BFDB_OK;
     }
@@ -93,20 +83,30 @@ namespace bfdb {
     }
 
     int memtable::get(const std::string &key, std::string &value, uint64_t sequence) {
-        const std::string dummy_value;
-        uint8_t dummpy_type = 0;
-        mtable_node_t *mnode, *vnode;
+        struct bfdev_skip_node *node, *walk;
+        mtable_node_t *result;
 
-        if (mtable_node_build(mnode, key, dummy_value, sequence, dummpy_type) != BFDB_OK) {
+        node = (struct bfdev_skip_node *)bfdev_skiplist_find(table, (void *)key.data(), mtable_node_find);
+        if (node == NULL) {
             return BFDB_ERR;
         }
 
-        vnode = (mtable_node_t *)bfdev_skiplist_find(table, (void *)mnode, mtable_node_cmp);
-        if (vnode == NULL) {
-            return BFDB_ERR;
+        walk = node;
+        result = (mtable_node_t *)node->pdata;
+
+        bfdev_skiplist_for_each_continue(walk, table, 0) {
+            if (strcmp(((mtable_node_t *)walk->pdata)->key,
+                       ((mtable_node_t *)node->pdata)->key))
+                break;
+
+            if (((mtable_node_t *)walk->pdata)->sequence > sequence)
+                break;
+
+            node = walk;
+            result = (mtable_node_t *)node->pdata;
         }
 
-        value.assign(vnode->value, (size_t)vnode->value_size);
+        value.assign(result->value, (size_t)result->value_size);
 
         return BFDB_OK;
     }

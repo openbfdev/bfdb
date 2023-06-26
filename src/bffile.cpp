@@ -33,7 +33,7 @@ namespace bfdb {
     }
 
     int bffile::write(const char *data, size_t size) {
-        size_t n;
+        ssize_t n;
         for (;;) {
             if (size == 0) {
                 break;
