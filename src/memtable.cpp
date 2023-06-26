@@ -3,6 +3,7 @@
 #include "bfdev/skiplist.h"
 #include "serializer.hpp"
 #include <cstddef>
+#include <cassert>
 
 namespace bfdb {
 
@@ -29,7 +30,7 @@ namespace bfdb {
         return 0;
     }
 
-    void memtable::mtable_node_free(const void *p) {
+    void memtable::mtable_node_free(void *p) {
         mtable_node_t *node;
         node = (mtable_node_t *)p;
 
@@ -85,7 +86,6 @@ namespace bfdb {
     }
 
     int memtable::get(const std::string &key, std::string &value, uint64_t sequence) {
-        bfdev_skip_node *node;
         const std::string dummy_value;
         uint8_t dummpy_type = 0;
         mtable_node_t *mnode, *vnode;
@@ -94,12 +94,10 @@ namespace bfdb {
             return BFDB_ERR;
         }
 
-        node = bfdev_skiplist_find(table, (void *)mnode, mtable_node_cmp);
-        if (node == NULL) {
+        vnode = (mtable_node_t *)bfdev_skiplist_find(table, (void *)mnode, mtable_node_cmp);
+        if (vnode == NULL) {
             return BFDB_ERR;
         }
-
-        vnode = (mtable_node_t *)node->pdata;
 
         value.assign(vnode->value, (size_t)vnode->value_size);
 
