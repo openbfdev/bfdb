@@ -2,7 +2,9 @@
 #include <cstdio>
 #include <string>
 #include "dblog.hpp"
+#include "memtable.hpp"
 #include <sys/stat.h>
+#include <iostream>
 
 namespace bfdb {
     bfdb::bfdb(const std::string &name): db_name(name){
@@ -36,6 +38,12 @@ namespace bfdb {
         if (log.put(key, value) != BFDB_OK) {
             return BFDB_ERR;
         }
+
+        if (mtable.put(key, value, sequence, 1) != BFDB_OK) {
+            return BFDB_ERR;
+        }
+        
+        sequence++;
 
         return BFDB_OK;
     }

@@ -2,7 +2,6 @@
 #define __MEMTABLE__H__
 
 #include <string>
-#include "db.hpp"
 #include "bfdev/skiplist.h"
 
 namespace bfdb {

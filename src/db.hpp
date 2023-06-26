@@ -2,6 +2,8 @@
 #define __DB__H__
 #include <string>
 #include "dblog.hpp"
+#include "memtable.hpp"
+#include <cstdint>
 
 #define BFDB_OK 0
 #define BFDB_ERR -1
@@ -18,6 +20,8 @@ namespace bfdb {
             class bfdb *db;
             class dblog log;
             const std::string db_name;
+            class memtable mtable;
+            uint64_t sequence = 0;
     };
 }
 

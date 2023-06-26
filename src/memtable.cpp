@@ -4,17 +4,20 @@
 #include "serializer.hpp"
 #include <cstddef>
 #include <cassert>
+#include <cstring>
 
 namespace bfdb {
 
     long memtable::mtable_node_cmp(const void *a, const void *b) {
         mtable_node_t *nodea = (mtable_node_t *)a , *nodeb = (mtable_node_t *)b;
+        int key_cmp;
+        key_cmp = strcmp(nodea->key, nodeb->key);
 
-        if (nodea->key > nodeb->key) {
+        if (key_cmp > 0) {
             return 1;
         }
 
-        if (nodea->key < nodeb->key) {
+        if (key_cmp < 0) {
             return -1;
         }
 
@@ -45,17 +48,19 @@ namespace bfdb {
             return BFDB_ERR;
         }
 
-        node->key_size = key.length();
+        node->key_size = key.size();
 
         node->key = (char *)malloc(node->key_size);
         if (node->key == NULL) {
             return BFDB_ERR;
         }
 
+        memcpy(node->key, key.data(), key.size());
+
         node->sequence = sequence;
         node->type = type;
 
-        node->value_size = value.length();
+        node->value_size = value.size();
 
         if (node->value_size == 0) {
             node->value = NULL;
@@ -66,6 +71,8 @@ namespace bfdb {
         if (node->value == NULL) {
             return BFDB_ERR;
         }
+        
+        memcpy(node->value, value.data(), value.size());
 
         return BFDB_OK;
     }
