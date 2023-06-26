@@ -2,6 +2,7 @@
 #define __BFFILE__H__
 #include <string>
 #include <fcntl.h>
+#include <cstdint>
 
 namespace bfdb {
     class bffile {

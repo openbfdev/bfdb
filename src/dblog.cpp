@@ -55,7 +55,7 @@ namespace bfdb {
             n = size;
             return append_record(type, p, n);
         }
-        
+
         type = DBLOG_RECORD_FIRST;
 
         for (;;) {

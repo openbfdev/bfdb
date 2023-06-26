@@ -19,7 +19,7 @@ namespace bfdb {
         }
 
         int serializer::serialize(std::string &dst, uint64_t l) {
-            //FIXME: use Major disjunction sequence 
+            //FIXME: use Major disjunction sequence
             dst.append((char *)&l, sizeof(uint64_t));
             return BFDB_OK;
         }
@@ -43,7 +43,7 @@ namespace bfdb {
         }
 
         int serializer::serialize(char *p, uint64_t l) {
-            //FIXME: use Major disjunction sequence 
+            //FIXME: use Major disjunction sequence
             memcpy(p, &l, sizeof(l));
             return BFDB_OK;
         }

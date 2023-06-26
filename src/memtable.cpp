@@ -98,7 +98,7 @@ namespace bfdb {
         if (node == NULL) {
             return BFDB_ERR;
         }
-        
+
         vnode = (mtable_node_t *)node->pdata;
 
         value.assign(vnode->value, (size_t)vnode->value_size);
@@ -115,4 +115,3 @@ namespace bfdb {
         bfdev_skiplist_destroy(table, mtable_node_free);
     }
 }
-

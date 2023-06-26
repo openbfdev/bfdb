@@ -16,7 +16,7 @@ namespace bfdb {
             static int serialize(char *p, uint32_t i);
             static int serialize(char *p, uint64_t l);
             static int serialize(char *p, const char *data, size_t size);
-            
+
             static int deserialize(const char *data, size_t size, uint8_t &b);
             static int deserialize(const char *data, size_t size, uint32_t &i);
             static int deserialize(const char *data, size_t size, uint64_t &l);

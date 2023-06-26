@@ -26,13 +26,13 @@ namespace bfdb {
         if (log.open(db_name, 0) != BFDB_OK) {
             return BFDB_ERR;
         }
-        
+
         return BFDB_OK;
     }
 
 
     int bfdb::put(const std::string &key, const std::string &value) {
-    
+
         if (log.put(key, value) != BFDB_OK) {
             return BFDB_ERR;
         }

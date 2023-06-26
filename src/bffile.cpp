@@ -38,7 +38,7 @@ namespace bfdb {
             if (size == 0) {
                 break;
             }
-            
+
             n = ::write(fd, data, size);
             if (n < 0) {
                 if (errno == EINTR) {
@@ -73,7 +73,7 @@ namespace bfdb {
             if (::lseek(fd, offset, SEEK_SET) == -1) {
                 return BFDB_ERR;
             }
-            
+
             sys_offset = offset;
         }
 
