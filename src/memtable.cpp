@@ -8,7 +8,7 @@
 
 namespace bfdb {
 
-    long memtable::mtable_node_cmp(const void *a, const void *b) {
+    long memtable::mtable_node_insert_cmp(const void *a, const void *b) {
         mtable_node_t *nodea = (mtable_node_t *)a, *nodeb = (mtable_node_t *)b;
         int result;
 
@@ -19,7 +19,7 @@ namespace bfdb {
         return nodea->sequence - nodeb->sequence;
     }
 
-    long memtable::mtable_node_find(const void *node, const void *key) {
+    long memtable::mtable_node_find_cmp(const void *node, const void *key) {
         return strcmp(((mtable_node_t *)node)->key, (const char *)key);
     }
 
@@ -75,7 +75,7 @@ namespace bfdb {
         }
 
 
-        if (bfdev_skiplist_insert(table, (void *)mnode, mtable_node_cmp) != BFDEV_ENOERR) {
+        if (bfdev_skiplist_insert(table, (void *)mnode, mtable_node_insert_cmp) != BFDEV_ENOERR) {
             return BFDB_ERR;
         }
 
@@ -86,7 +86,7 @@ namespace bfdb {
         struct bfdev_skip_node *node, *walk;
         mtable_node_t *result;
 
-        node = (struct bfdev_skip_node *)bfdev_skiplist_find(table, (void *)key.data(), mtable_node_find);
+        node = (struct bfdev_skip_node *)bfdev_skiplist_find(table, (void *)key.data(), mtable_node_find_cmp);
         if (node == NULL) {
             return BFDB_ERR;
         }
