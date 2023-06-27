@@ -29,11 +29,19 @@ add_subdirectory(src/bfdev)
 include_directories(${PROJECT_SOURCE_DIR}/src/bfdev/include)
 include_directories(${PROJECT_BINARY_DIR}/src/bfdev/generated)
 
-add_executable(bfdb ${SRCS})
+include_directories(${PROJECT_SOURCE_DIR}/src)
 
-target_link_libraries(${PROJECT_NAME}  PRIVATE bfdev)
+add_library(bfdb_shared SHARED ${SRCS})
+add_library(bfdb_static STATIC ${SRCS})
+add_library(bfdb ALIAS bfdb_static)
+
+target_link_libraries(bfdb_static PRIVATE bfdev)
+target_link_libraries(bfdb_shared PRIVATE bfdev)
+
+
+add_subdirectory(demo)
 
 install(TARGETS
-    ${PROJECT_NAME}
+    bfdb_static 
     DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
