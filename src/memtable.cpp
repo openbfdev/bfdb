@@ -84,7 +84,9 @@ namespace bfdb {
 
     int memtable::get(const std::string &key, std::string &value, uint64_t sequence) {
         struct bfdev_skip_node *node, *walk;
-        mtable_node_t *result;
+        mtable_node_t *result = NULL;
+
+        value.clear();
 
         node = (struct bfdev_skip_node *)bfdev_skiplist_find(table, (void *)key.data(), mtable_node_find_cmp);
         if (node == NULL) {
@@ -92,9 +94,8 @@ namespace bfdb {
         }
 
         walk = node;
-        result = (mtable_node_t *)node->pdata;
 
-        bfdev_skiplist_for_each_continue(walk, table, 0) {
+        bfdev_skiplist_for_each_from(walk, table, 0) {
             if (strcmp(((mtable_node_t *)walk->pdata)->key,
                        ((mtable_node_t *)node->pdata)->key))
                 break;
@@ -104,6 +105,10 @@ namespace bfdb {
 
             node = walk;
             result = (mtable_node_t *)node->pdata;
+        }
+
+        if (result == NULL) {
+            return BFDB_ERR;
         }
 
         value.assign(result->value, (size_t)result->value_size);
