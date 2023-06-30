@@ -40,12 +40,13 @@ namespace bfdb {
 
         node->key_size = key.size();
 
-        node->key = (char *)::malloc(node->key_size);
+        node->key = (char *)::malloc(node->key_size + 1);
         if (node->key == NULL) {
             return BFDB_ERR;
         }
-
+        
         ::memcpy(node->key, key.data(), key.size());
+        node->key[node->key_size] = '\0';
 
         node->sequence = sequence;
         node->type = type;
@@ -57,12 +58,13 @@ namespace bfdb {
             return BFDB_OK;
         }
 
-        node->value = (char *)::malloc(node->value_size);
+        node->value = (char *)::malloc(node->value_size + 1);
         if (node->value == NULL) {
             return BFDB_ERR;
         }
 
         ::memcpy(node->value, value.data(), value.size());
+        node->value[node->value_size] = '\0';
 
         return BFDB_OK;
     }
@@ -111,9 +113,16 @@ namespace bfdb {
             return BFDB_ERR;
         }
 
-        value.assign(result->value, (size_t)result->value_size);
+        if (result->type == MTABLE_PUT_DELETE) {
+            assert(value.size() == 0);
+            return BFDB_OK;
+        }
 
+        assert(result->type == MTABLE_PUT_INSERT);
+        value.assign(result->value, (size_t)result->value_size);
+        
         return BFDB_OK;
+        
     }
 
     memtable::memtable() {

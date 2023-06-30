@@ -8,6 +8,10 @@
 namespace bfdb {
     class memtable {
         public:
+            enum {
+                MTABLE_PUT_INSERT,
+                MTABLE_PUT_DELETE,
+            };
             memtable();
             ~memtable();
             int get(const std::string &key, std::string &value, uint64_t sequence);
