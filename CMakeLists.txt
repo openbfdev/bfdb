@@ -11,6 +11,14 @@ add_definitions(
     " -Wno-null-pointer-arithmetic"
 )
 
+set(CMAKE_CXX_FLAGS
+        "${CMAKE_C_FLAGS} \
+         -fsanitize=address \
+         -fsanitize=undefined \
+         -fsanitize-recover=all \
+         -fno-omit-frame-pointer \
+         -fno-stack-protector"
+)
 set(CMAKE_CXX_STANDARD 14)
 
 set(BFDEV_SOURCE_PATH ${PROJECT_SOURCE_DIR}/src)
