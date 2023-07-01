@@ -32,6 +32,9 @@ namespace bfdb {
             static long mtable_node_find_cmp(const void *node, const void *key);
             static void mtable_node_free(void *p);
 
+            struct bfdev_skip_node *skiplist_find_max(struct bfdev_skip_node *node, uint64_t sequence);
+            struct bfdev_skip_node *skiplist_prev_find_max(struct bfdev_skip_node *node, uint64_t sequence);
+
             struct bfdev_skip_head *table;
     };
 }

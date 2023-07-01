@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <cassert>
 #include <cstring>
+#include <stdint.h>
 
 namespace bfdb {
 
@@ -84,10 +85,56 @@ namespace bfdb {
         return BFDB_OK;
     }
 
-    int memtable::get(const std::string &key, std::string &value, uint64_t sequence) {
-        struct bfdev_skip_node *node, *walk;
-        mtable_node_t *result = NULL;
+    struct bfdev_skip_node* memtable::skiplist_find_max(struct bfdev_skip_node *node, uint64_t sequence) {
+        struct bfdev_skip_node *walk, *result = NULL;
+        walk = node;
+        bfdev_skiplist_for_each(walk, table, 0) {
+            if (strcmp(((mtable_node_t *)walk->pdata)->key,
+                       ((mtable_node_t *)node->pdata)->key) != 0) {
+                break;
+            }
 
+            if (((mtable_node_t *)walk->pdata)->sequence > sequence) {
+                break;
+            }
+
+            if (((mtable_node_t *)walk->pdata)->sequence == sequence) {
+                result = walk;
+                break;
+            }
+
+        }
+
+        return result;
+    }
+
+    struct bfdev_skip_node* memtable::skiplist_prev_find_max(struct bfdev_skip_node *node, uint64_t sequence) {
+        struct bfdev_skip_node *walk, *result = NULL;
+        walk = node;
+        bfdev_skiplist_for_each_reverse(walk, table, 0) {
+            if (strcmp(((mtable_node_t *)walk->pdata)->key,
+                       ((mtable_node_t *)node->pdata)->key) != 0) {
+                break;
+            }
+
+            if (((mtable_node_t *)walk->pdata)->sequence < sequence) {
+                break;
+            }
+
+            if (((mtable_node_t *)walk->pdata)->sequence == sequence) {
+                result = walk;
+                break;
+            }
+        }
+
+        return result;
+
+    }
+
+    int memtable::get(const std::string &key, std::string &value, uint64_t sequence) {
+        struct bfdev_skip_node *node, *next_max, *prev_max, *max;
+        mtable_node_t *result = NULL;
+        uint64_t next_max_seq = 0, prev_max_seq = 0;
         value.clear();
 
         node = (struct bfdev_skip_node *)bfdev_skiplist_find(table, (void *)key.data(), mtable_node_find_cmp);
@@ -95,23 +142,23 @@ namespace bfdb {
             return BFDB_ERR;
         }
 
-        walk = node;
+        if (((mtable_node_t *)node->pdata)->sequence == sequence) {
+            max = node;
+        }else {
+            next_max = skiplist_find_max(node, sequence);
+            if (next_max) {
+                next_max_seq = ((mtable_node_t *)next_max->pdata)->sequence;
+            }
 
-        bfdev_skiplist_for_each_from(walk, table, 0) {
-            if (strcmp(((mtable_node_t *)walk->pdata)->key,
-                       ((mtable_node_t *)node->pdata)->key))
-                break;
-
-            if (((mtable_node_t *)walk->pdata)->sequence > sequence)
-                break;
-
-            node = walk;
-            result = (mtable_node_t *)node->pdata;
+            prev_max = skiplist_prev_find_max(node, sequence);
+            if (prev_max) {
+                prev_max_seq = ((mtable_node_t *)prev_max->pdata)->sequence;
+            }
+            
+            max = next_max_seq > prev_max_seq ? next_max : prev_max;
         }
 
-        if (result == NULL) {
-            return BFDB_ERR;
-        }
+        result = (mtable_node_t *)max->pdata;
 
         if (result->type == MTABLE_PUT_DELETE) {
             assert(value.size() == 0);
