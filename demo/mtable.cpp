@@ -48,6 +48,20 @@ int bfdb_command_del(bfdb::memtable &db, int argc, const char *argv[]) {
     return db.put(key, "", ++sequence, bfdb::memtable::MTABLE_PUT_DELETE);
 }
 
+int bfdb_command_gets(bfdb::memtable &db, int argc, const char *argv[]) {
+    const char *seq, *key;
+    std::string value;
+    int retval;
+
+    key = argv[1];
+    seq = argv[2];
+
+    retval = db.get(key, value, strtoull(seq, NULL, 0));
+    std::cout << value << std::endl;
+
+    return retval;
+}
+
 static bfdb_command_t bfdb_cmds[] = {
     {
         .name = "get",
@@ -67,6 +81,13 @@ static bfdb_command_t bfdb_cmds[] = {
         .max_argc = 2,
         .op = bfdb_command_del
     },
+    {
+        .name = "gets",
+        .min_argc = 3,
+        .max_argc = 3,
+        .op = bfdb_command_gets
+    },
+    { }, /* NULL*/
 };
 
 int argcv_parser_helper(const char *cmd) {
@@ -134,7 +155,7 @@ int argcv_parser(const char *cmd, char ***argv) {
 bfdb_command_t *bfdb_find_command(const char *name) {
     bfdb_command_t *cmd;
     int i;
-    for (i = 0; i < 3; i++) {
+    for (i = 0; bfdb_cmds[i].name; i++) {
         cmd = &bfdb_cmds[i];
         if (strcmp(name, cmd->name) == 0) {
             return cmd;
