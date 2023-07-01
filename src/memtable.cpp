@@ -45,7 +45,7 @@ namespace bfdb {
         if (node->key == NULL) {
             return BFDB_ERR;
         }
-        
+
         ::memcpy(node->key, key.data(), key.size());
         node->key[node->key_size] = '\0';
 
@@ -86,9 +86,10 @@ namespace bfdb {
     }
 
     struct bfdev_skip_node* memtable::skiplist_find_max(struct bfdev_skip_node *node, uint64_t sequence) {
-        struct bfdev_skip_node *walk, *result = NULL;
+        struct bfdev_skip_node *walk, *result = node;
+
         walk = node;
-        bfdev_skiplist_for_each(walk, table, 0) {
+        bfdev_skiplist_for_each_continue(walk, table, 0) {
             if (strcmp(((mtable_node_t *)walk->pdata)->key,
                        ((mtable_node_t *)node->pdata)->key) != 0) {
                 break;
@@ -98,11 +99,10 @@ namespace bfdb {
                 break;
             }
 
-            if (((mtable_node_t *)walk->pdata)->sequence == sequence) {
-                result = walk;
-                break;
-            }
+            // k: a b -> NULL
+            // s: 2 1
 
+            result = walk;
         }
 
         return result;
@@ -110,8 +110,11 @@ namespace bfdb {
 
     struct bfdev_skip_node* memtable::skiplist_prev_find_max(struct bfdev_skip_node *node, uint64_t sequence) {
         struct bfdev_skip_node *walk, *result = NULL;
+
+        return NULL;
+
         walk = node;
-        bfdev_skiplist_for_each_reverse(walk, table, 0) {
+        bfdev_skiplist_for_each_reverse_from(walk, table, 0) {
             if (strcmp(((mtable_node_t *)walk->pdata)->key,
                        ((mtable_node_t *)node->pdata)->key) != 0) {
                 break;
@@ -154,7 +157,7 @@ namespace bfdb {
             if (prev_max) {
                 prev_max_seq = ((mtable_node_t *)prev_max->pdata)->sequence;
             }
-            
+
             max = next_max_seq > prev_max_seq ? next_max : prev_max;
         }
 
@@ -167,9 +170,9 @@ namespace bfdb {
 
         assert(result->type == MTABLE_PUT_INSERT);
         value.assign(result->value, (size_t)result->value_size);
-        
+
         return BFDB_OK;
-        
+
     }
 
     memtable::memtable() {
