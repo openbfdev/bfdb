@@ -44,7 +44,7 @@ namespace bfdb {
         if (node->key == NULL) {
             return BFDB_ERR;
         }
-        
+
         ::memcpy(node->key, key.data(), key.size());
         node->key[node->key_size] = '\0';
 
@@ -85,28 +85,42 @@ namespace bfdb {
     }
 
     int memtable::get(const std::string &key, std::string &value, uint64_t sequence) {
-        struct bfdev_skip_node *node, *walk;
-        mtable_node_t *result = NULL;
+        mtable_node_t *mnode, *result = NULL;
+        struct bfdev_skip_node *node;
 
         value.clear();
 
         node = (struct bfdev_skip_node *)bfdev_skiplist_find(table, (void *)key.data(), mtable_node_find_cmp);
-        if (node == NULL) {
+        if (node == NULL)
             return BFDB_ERR;
-        }
 
-        walk = node;
+        mnode = (mtable_node_t *)node->pdata;
+        if (mnode->sequence <= sequence) {
+            result = mnode;
 
-        bfdev_skiplist_for_each_from(walk, table, 0) {
-            if (strcmp(((mtable_node_t *)walk->pdata)->key,
-                       ((mtable_node_t *)node->pdata)->key))
-                break;
+            bfdev_skiplist_for_each_continue(node, table, 0) {
+                mnode = (mtable_node_t *)node->pdata;
 
-            if (((mtable_node_t *)walk->pdata)->sequence > sequence)
-                break;
+                if (strcmp(mnode->key, (char *)key.data()))
+                    break;
 
-            node = walk;
-            result = (mtable_node_t *)node->pdata;
+                if (mnode->sequence > sequence)
+                    break;
+
+                result = mnode;
+            }
+        } else { /* mnode->sequence > sequence */
+            bfdev_skiplist_for_each_reverse_continue(node, table, 0) {
+                mnode = (mtable_node_t *)node->pdata;
+
+                if (strcmp(mnode->key, (char *)key.data()))
+                    break;
+
+                if (mnode->sequence <= sequence) {
+                    result = mnode;
+                    break;
+                }
+            }
         }
 
         if (result == NULL) {
@@ -120,9 +134,9 @@ namespace bfdb {
 
         assert(result->type == MTABLE_PUT_INSERT);
         value.assign(result->value, (size_t)result->value_size);
-        
+
         return BFDB_OK;
-        
+
     }
 
     memtable::memtable() {
