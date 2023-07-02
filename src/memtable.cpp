@@ -84,27 +84,26 @@ namespace bfdb {
         return BFDB_OK;
     }
 
-    int memtable::get(const std::string &key, std::string &value, uint64_t sequence) {
-        mtable_node_t *mnode, *result = NULL;
+    //find the node with sequence y that have math expr: y = max(sequence_x <= max_sequence).
+    //FIXME: refactor it..
+    memtable::mtable_node_t* memtable::find_le_max_sequence(struct bfdev_skip_node *startn, uint64_t max_sequence) {
+        mtable_node_t *mnode, *result = NULL;;
         struct bfdev_skip_node *node;
+        assert(startn != NULL);
 
-        value.clear();
-
-        node = (struct bfdev_skip_node *)bfdev_skiplist_find(table, (void *)key.data(), mtable_node_find_cmp);
-        if (node == NULL)
-            return BFDB_ERR;
-
+        node = startn;
         mnode = (mtable_node_t *)node->pdata;
-        if (mnode->sequence <= sequence) {
+
+        if (mnode->sequence <= max_sequence) {
             result = mnode;
 
             bfdev_skiplist_for_each_continue(node, table, 0) {
                 mnode = (mtable_node_t *)node->pdata;
 
-                if (strcmp(mnode->key, (char *)key.data()))
+                if (strcmp(mnode->key, ((mtable_node_t *)startn->pdata)->key))
                     break;
 
-                if (mnode->sequence > sequence)
+                if (mnode->sequence > max_sequence)
                     break;
 
                 result = mnode;
@@ -113,15 +112,30 @@ namespace bfdb {
             bfdev_skiplist_for_each_reverse_continue(node, table, 0) {
                 mnode = (mtable_node_t *)node->pdata;
 
-                if (strcmp(mnode->key, (char *)key.data()))
+                if (strcmp(mnode->key, ((mtable_node_t *)startn->pdata)->key))
                     break;
 
-                if (mnode->sequence <= sequence) {
+                if (mnode->sequence <= max_sequence) {
                     result = mnode;
                     break;
                 }
             }
         }
+
+        return result;
+    }
+
+    int memtable::get(const std::string &key, std::string &value, uint64_t sequence) {
+        mtable_node_t *result = NULL;
+        struct bfdev_skip_node *node;
+
+        value.clear();
+
+        node = (struct bfdev_skip_node *)bfdev_skiplist_find(table, (void *)key.data(), mtable_node_find_cmp);
+        if (node == NULL)
+            return BFDB_ERR;
+
+        result = find_le_max_sequence(node, sequence);
 
         if (result == NULL) {
             return BFDB_ERR;

@@ -26,12 +26,12 @@ namespace bfdb {
 
                 uint32_t value_size;
                 char    *value;
-            }mtable_node_t;
+            } mtable_node_t;
             int mtable_node_build(mtable_node_t* &node, const std::string &key, const std::string &value, uint64_t sequence, uint8_t type);
             static long mtable_node_insert_cmp(const void *ap, const void *bp);
             static long mtable_node_find_cmp(const void *node, const void *key);
             static void mtable_node_free(void *p);
-
+            struct mtable_node_s *find_le_max_sequence(struct bfdev_skip_node *startn, uint64_t max_sequence);
             struct bfdev_skip_head *table;
     };
 }
