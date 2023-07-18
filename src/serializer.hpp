@@ -11,6 +11,7 @@ namespace bfdb {
             static int serialize(std::string &dst, uint32_t i);
             static int serialize(std::string &dst, uint64_t l);
             static int serialize(std::string &dst, const char *data);
+            static int serialize(std::string &dst, const char *data, size_t len);
 
             static int serialize(char *p, uint8_t b);
             static int serialize(char *p, uint32_t i);

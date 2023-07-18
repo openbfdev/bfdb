@@ -30,6 +30,12 @@ namespace bfdb {
             return BFDB_OK;
         }
 
+        int serializer::serialize(std::string &dst, const char *data, size_t len) {
+            //do nothing, just append data
+            dst.append(data, len);
+            return BFDB_OK;
+        }
+
         int serializer::serialize(char *p, uint8_t b) {
             //FIXME: use Major disjunction sequence
             memcpy(p, &b, sizeof(b));
