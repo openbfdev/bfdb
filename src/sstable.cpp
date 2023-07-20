@@ -39,7 +39,7 @@ namespace bfdb {
 
             //for next data block use..
             return data_block.reset();
-            
+
         }
 
         int sstable::flush_index_block() {
@@ -89,6 +89,9 @@ namespace bfdb {
                 return BFDB_ERR;
             }
             
+            if (!need_flush_data_block()) {
+                return BFDB_OK;
+            }
             
             if (flush_data_block() != BFDB_OK) {
                 return BFDB_ERR;

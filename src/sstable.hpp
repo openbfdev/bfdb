@@ -20,6 +20,7 @@ namespace bfdb {
             uint32_t offset;
             uint32_t size;
         };
+        #define MAX_BLOCK_SIZE (4 * 1024)
 
         // data block
         class data_block :block {
@@ -68,6 +69,15 @@ namespace bfdb {
                 int flush_meta_index_block();
                 int flush_filter_block();
                 int flush();
+                bool need_flush_data_block() {
+                    
+                    if (data_block.block_size() < MAX_BLOCK_SIZE) {
+                        return false;
+                    }
+
+                    return true;
+                }
+
                 int flush_readable();
             private:
                 std::string filename;
