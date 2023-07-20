@@ -1,84 +1,48 @@
 #ifndef __SSTABLE__H__
 #define __SSTABLE__H__
 
-#include <cstddef>
+#include <_types/_uint32_t.h>
+#include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 #include "db.hpp"
+#include "block.hpp"
 
 namespace bfdb {
     namespace sstable {
+        struct block_range {
+            block_range(uint32_t offset, uint32_t size): offset(offset), size(size) {
 
-        static const size_t BLOCK_TRAILER_SIZE = 
-            1  //compression type 
-            + 4; //crc
-
-        enum compression_type {
-            NO_COMPRESSION,
-            SNAPPY_COMPRESSION,
-            ZSTD_COMPRESSION,
-        };
-
-
-        class block {
-            struct compression_block {
-                typedef int (*compression_pt)(std::string &in);
-                enum compression_type type;
-                compression_pt handler;
-            };
-        
-            int static compression_no(std::string &in) {
-                return BFDB_OK;
             }
 
-            int static compression_snappy(std::string &in) {
-                //FIXME: support
-                return BFDB_ERR;
-            }
-
-            int static compression_zstd(std::string &in) {
-                //FIXME: support
-                return BFDB_ERR;
-            }
-
-            static constexpr compression_block cb_table[] = {
-                {
-                    .type = NO_COMPRESSION,
-                    .handler = compression_no,
-                },
-                {
-                    .type = SNAPPY_COMPRESSION,
-                    .handler = compression_snappy,
-                },
-                {
-                    .type = ZSTD_COMPRESSION,
-                    .handler = compression_zstd,
-                },
-            };
-        public:
-            int block_append_trailer(compression_type type);
-            int prepare_flush();
-            int block_compress(compression_type &type);
-            int put(std::string &key, std::string &value);
-            size_t block_size();
-        private:
-            uint32_t crc;
-            //compress type
-            enum compression_type ctype = NO_COMPRESSION;
-        
-        protected:
-            //shared ptr
-            std::string buffer;
-            std::vector<uint32_t> restarts;
+            uint32_t offset;
+            uint32_t size;
         };
 
         // data block
         class data_block :block {
         public:
             int put(std::string &key, std::string &value);
+            int prepare_flush();
             size_t block_size();
+
+            const std::string& get_max_key() {
+                return max_key;
+            }
+
+            const std::string& get_buffer() {
+                return buffer;
+            }
+
+            int reset() {
+                max_key.clear();
+                return block::reset();
+            }
+
         private:
+            std::string max_key;
         };
 
 
@@ -96,9 +60,13 @@ namespace bfdb {
         };
 
         class sstable {
+             
             public:
                 int put(std::string &key, std::string &value);
                 int flush_data_block();
+                int flush_index_block();
+                int flush_meta_index_block();
+                int flush_filter_block();
                 int flush();
                 int flush_readable();
             private:
@@ -107,10 +75,19 @@ namespace bfdb {
                 // std::shared_ptr<std::string> filename;
                 bffile file;
 
-                data_block dblock;
+                //each time just have one datablock for save memory
+                data_block data_block;
+                
+                //each time just have one filter_block for save memory
                 filter_block filter_block;
+
                 mindex_block mindex_block;
                 index_block  index_block;
+
+                //FIXME: remove data_block_offset
+                uint32_t data_block_offset = 0;
+                std::vector<std::pair<std::string, block_range>> dbs;
+
 
         };
     
