@@ -25,9 +25,20 @@ namespace bfdb {
         // data block
         class data_block :block {
         public:
-            int put(std::string &key, std::string &value);
-            int prepare_flush();
-            size_t block_size();
+            int put(std::string &key, std::string &value) {
+                //save the key to max key
+                max_key = key;
+                return block::put(key, value);
+            }
+            
+            int prepare_flush() {
+                //TODO: somthing other
+                return block::prepare_flush();
+            }
+
+            size_t block_size() {
+                return block::block_size();
+            }
 
             const std::string& get_max_key() {
                 return max_key;

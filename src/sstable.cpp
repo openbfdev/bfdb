@@ -6,22 +6,6 @@
 namespace bfdb {
     namespace sstable {
 
-
-        int data_block::put(std::string &key, std::string &value) {
-            //save the key to max key
-            max_key = key;
-            return block::put(key, value);
-        }
-
-        size_t data_block::block_size() {
-            return block::block_size();
-        }
-
-        int data_block::prepare_flush() {
-            //TODO: somthing other
-            return block::prepare_flush();
-        }
-
         int sstable::flush_data_block() {
             if (data_block.prepare_flush() != BFDB_OK) {
                 return BFDB_ERR;
@@ -92,7 +76,7 @@ namespace bfdb {
             if (!need_flush_data_block()) {
                 return BFDB_OK;
             }
-            
+
             if (flush_data_block() != BFDB_OK) {
                 return BFDB_ERR;
             }
